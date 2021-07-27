@@ -1,0 +1,42 @@
+---
+title: "Sliced AirBnB"
+author: "Hamed Bastan-Hagh"
+date: "27/07/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+prep_juice <- function(x) x %>% prep() %>% juice()
+```
+
+```{r}
+library(tidymodels)
+library(textrecipes)
+library(tidytext)
+library(broom)
+library(tidyverse)
+library(stacks)
+```
+
+```{r}
+holdout <- read_csv("data/test.csv")
+all_training <- read_csv("data/train.csv") %>% 
+  mutate(price = log(price + 1))
+splits <- initial_split(all_training)
+dtrain <- training(splits)
+dtest <- testing(splits)
+```
+
+```{r}
+skimr::skim(all_training)
+```
+
+```{r}
+numeric_base_rec <- recipe(price ~ minimum_nights + number_of_reviews + 
+                             last_review + reviews_per_month, 
+                           data = dtrain) %>% 
+  step_mutate(last_review = coalesce(as.integer(Sys.Date() - last_review), 0L))
+
+```
+
